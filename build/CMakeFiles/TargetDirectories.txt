@@ -1,0 +1,3 @@
+/mnt/c/Users/Lovre/OneDrive/Dokumenti/5.semestar/PROJEKT_R/main/build/CMakeFiles/pimavilo_mapper.dir
+/mnt/c/Users/Lovre/OneDrive/Dokumenti/5.semestar/PROJEKT_R/main/build/CMakeFiles/edit_cache.dir
+/mnt/c/Users/Lovre/OneDrive/Dokumenti/5.semestar/PROJEKT_R/main/build/CMakeFiles/rebuild_cache.dir
