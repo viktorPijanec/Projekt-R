@@ -54,25 +54,42 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /mnt/c/Users/Lovre/OneDrive/Dokumenti/5.semestar/PROJEKT_R/main
+CMAKE_SOURCE_DIR = /mnt/c/Users/Lovre/Git/Projekt-R
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /mnt/c/Users/Lovre/OneDrive/Dokumenti/5.semestar/PROJEKT_R/main/build
+CMAKE_BINARY_DIR = /mnt/c/Users/Lovre/Git/Projekt-R/build
 
 #=============================================================================
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
 all: CMakeFiles/pimavilo_mapper.dir/all
+all: external/bioparser/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
-preinstall:
+preinstall: external/bioparser/preinstall
 .PHONY : preinstall
 
 # The main recursive "clean" target.
 clean: CMakeFiles/pimavilo_mapper.dir/clean
+clean: external/bioparser/clean
 .PHONY : clean
+
+#=============================================================================
+# Directory level rules for directory external/bioparser
+
+# Recursive "all" directory target.
+external/bioparser/all:
+.PHONY : external/bioparser/all
+
+# Recursive "preinstall" directory target.
+external/bioparser/preinstall:
+.PHONY : external/bioparser/preinstall
+
+# Recursive "clean" directory target.
+external/bioparser/clean:
+.PHONY : external/bioparser/clean
 
 #=============================================================================
 # Target rules for target CMakeFiles/pimavilo_mapper.dir
@@ -81,14 +98,14 @@ clean: CMakeFiles/pimavilo_mapper.dir/clean
 CMakeFiles/pimavilo_mapper.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pimavilo_mapper.dir/build.make CMakeFiles/pimavilo_mapper.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pimavilo_mapper.dir/build.make CMakeFiles/pimavilo_mapper.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/mnt/c/Users/Lovre/OneDrive/Dokumenti/5.semestar/PROJEKT_R/main/build/CMakeFiles --progress-num=1,2 "Built target pimavilo_mapper"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/mnt/c/Users/Lovre/Git/Projekt-R/build/CMakeFiles --progress-num=1,2 "Built target pimavilo_mapper"
 .PHONY : CMakeFiles/pimavilo_mapper.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/pimavilo_mapper.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/c/Users/Lovre/OneDrive/Dokumenti/5.semestar/PROJEKT_R/main/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/c/Users/Lovre/Git/Projekt-R/build/CMakeFiles 2
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/pimavilo_mapper.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/c/Users/Lovre/OneDrive/Dokumenti/5.semestar/PROJEKT_R/main/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/c/Users/Lovre/Git/Projekt-R/build/CMakeFiles 0
 .PHONY : CMakeFiles/pimavilo_mapper.dir/rule
 
 # Convenience name for target.

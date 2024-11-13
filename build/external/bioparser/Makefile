@@ -87,14 +87,14 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/c/Users/Lovre/Git/Projekt-R/build/CMakeFiles /mnt/c/Users/Lovre/Git/Projekt-R/build//CMakeFiles/progress.marks
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
+	cd /mnt/c/Users/Lovre/Git/Projekt-R/build && $(CMAKE_COMMAND) -E cmake_progress_start /mnt/c/Users/Lovre/Git/Projekt-R/build/CMakeFiles /mnt/c/Users/Lovre/Git/Projekt-R/build/external/bioparser//CMakeFiles/progress.marks
+	cd /mnt/c/Users/Lovre/Git/Projekt-R/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 external/bioparser/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/c/Users/Lovre/Git/Projekt-R/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 clean
+	cd /mnt/c/Users/Lovre/Git/Projekt-R/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 external/bioparser/clean
 .PHONY : clean
 
 # The main clean target
@@ -103,55 +103,18 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 preinstall
+	cd /mnt/c/Users/Lovre/Git/Projekt-R/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 external/bioparser/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 preinstall
+	cd /mnt/c/Users/Lovre/Git/Projekt-R/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 external/bioparser/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /mnt/c/Users/Lovre/Git/Projekt-R/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
-
-#=============================================================================
-# Target rules for targets named pimavilo_mapper
-
-# Build rule for target.
-pimavilo_mapper: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 pimavilo_mapper
-.PHONY : pimavilo_mapper
-
-# fast build rule for target.
-pimavilo_mapper/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/pimavilo_mapper.dir/build.make CMakeFiles/pimavilo_mapper.dir/build
-.PHONY : pimavilo_mapper/fast
-
-src/pimavilo_mapper.o: src/pimavilo_mapper.cpp.o
-.PHONY : src/pimavilo_mapper.o
-
-# target to build an object file
-src/pimavilo_mapper.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/pimavilo_mapper.dir/build.make CMakeFiles/pimavilo_mapper.dir/src/pimavilo_mapper.cpp.o
-.PHONY : src/pimavilo_mapper.cpp.o
-
-src/pimavilo_mapper.i: src/pimavilo_mapper.cpp.i
-.PHONY : src/pimavilo_mapper.i
-
-# target to preprocess a source file
-src/pimavilo_mapper.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/pimavilo_mapper.dir/build.make CMakeFiles/pimavilo_mapper.dir/src/pimavilo_mapper.cpp.i
-.PHONY : src/pimavilo_mapper.cpp.i
-
-src/pimavilo_mapper.s: src/pimavilo_mapper.cpp.s
-.PHONY : src/pimavilo_mapper.s
-
-# target to generate assembly for a file
-src/pimavilo_mapper.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/pimavilo_mapper.dir/build.make CMakeFiles/pimavilo_mapper.dir/src/pimavilo_mapper.cpp.s
-.PHONY : src/pimavilo_mapper.cpp.s
 
 # Help Target
 help:
@@ -161,10 +124,6 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... pimavilo_mapper"
-	@echo "... src/pimavilo_mapper.o"
-	@echo "... src/pimavilo_mapper.i"
-	@echo "... src/pimavilo_mapper.s"
 .PHONY : help
 
 
@@ -176,6 +135,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /mnt/c/Users/Lovre/Git/Projekt-R/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 
