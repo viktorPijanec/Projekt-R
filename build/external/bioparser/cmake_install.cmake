@@ -1,4 +1,4 @@
-# Install script for directory: /mnt/c/Users/Lovre/Git/Projekt-R/external/bioparser
+# Install script for directory: /mnt/c/Viktor/Faks/Projekt R/Projekt/Projekt-R/external/bioparser
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = -DPROJECT_VERSION=\"1.0.0\"
 
-CXX_INCLUDES = -I/mnt/c/Users/Lovre/Git/Projekt-R/external/bioparser/include -isystem /mnt/c/msys64/ucrt64/include
+CXX_INCLUDES = -I"/mnt/c/Viktor/Faks/Projekt R/Projekt/Projekt-R/external/bioparser/include"
 
 CXX_FLAGS = -std=gnu++11
 

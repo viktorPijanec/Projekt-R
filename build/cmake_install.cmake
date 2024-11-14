@@ -1,4 +1,4 @@
-# Install script for directory: /mnt/c/Users/Lovre/Git/Projekt-R
+# Install script for directory: /mnt/c/Viktor/Faks/Projekt R/Projekt/Projekt-R
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -44,7 +44,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/mnt/c/Users/Lovre/Git/Projekt-R/build/external/bioparser/cmake_install.cmake")
+  include("/mnt/c/Viktor/Faks/Projekt R/Projekt/Projekt-R/build/external/bioparser/cmake_install.cmake")
 
 endif()
 
@@ -56,5 +56,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/mnt/c/Users/Lovre/Git/Projekt-R/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/mnt/c/Viktor/Faks/Projekt R/Projekt/Projekt-R/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

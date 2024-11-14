@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/mnt/c/Users/Lovre/Git/Projekt-R/src/pimavilo_mapper.cpp" "CMakeFiles/pimavilo_mapper.dir/src/pimavilo_mapper.cpp.o" "gcc" "CMakeFiles/pimavilo_mapper.dir/src/pimavilo_mapper.cpp.o.d"
+  "/mnt/c/Viktor/Faks/Projekt R/Projekt/Projekt-R/src/pimavilo_mapper.cpp" "CMakeFiles/pimavilo_mapper.dir/src/pimavilo_mapper.cpp.o" "gcc" "CMakeFiles/pimavilo_mapper.dir/src/pimavilo_mapper.cpp.o.d"
   )
 
 # Targets to which this target links.
