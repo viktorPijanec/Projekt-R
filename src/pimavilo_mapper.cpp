@@ -63,7 +63,7 @@ public:
 
 // Calculate statistics and print to stderr
 template <typename Sequence>
-void calculate_statistics(const std::vector<Sequence> &sequences)
+void calculate_statistics(const std::vector<std::unique_ptr<Sequence>> &sequences)
 {
     if (sequences.empty())
     {
@@ -73,13 +73,13 @@ void calculate_statistics(const std::vector<Sequence> &sequences)
 
     std::size_t num_sequences = sequences.size();
     std::size_t total_length = 0;
-    std::size_t min_length = sequences[0].length();
-    std::size_t max_length = sequences[0].length();
+    std::size_t min_length = sequences.begin()->get()->length();
+    std::size_t max_length = sequences.begin()->get()->length();
     std::vector<size_t> lengths;
 
     for (const auto &seq : sequences)
     {
-        std::size_t len = seq.length();
+        std::size_t len = seq->length();
         total_length += len;
         min_length = min(min_length, len);
         max_length = max(max_length, len);
@@ -163,9 +163,9 @@ int main(int argc, char *argv[])
     auto parser = bioparser::Parser<Sequence_Fasta>::Create<bioparser::FastaParser>(reference_file);
     auto reference_sequences = parser->Parse(-1);
     auto reference_sequence = std::move(reference_sequences[0]);
-    cout
-        << reference_sequence->name << "\n"
-        << reference_sequence->data.substr(0, 200) << "\n";                                     // ispisano prvih 200 znakova
+    // cout
+    //     << reference_sequence->name << "\n"
+    //     << reference_sequence->data.substr(0, 200) << "\n";                                     // ispisano prvih 200 znakova
     parser = bioparser::Parser<Sequence_Fasta>::Create<bioparser::FastaParser>(fragments_file); // procitani fragmenti
     auto sequences = parser->Parse(-1);
     // for (const auto &seq : sequences)
@@ -176,12 +176,7 @@ int main(int argc, char *argv[])
     // auto reference_sequences = <bioparser::FastqParser, Sequence_Fastq>(fragments_file);
 
     // Output names and lengths of sequences in the reference file
-    cerr
-        << "Reference sequences:\n";
-    for (const auto &seq : sequences)
-    {
-        cerr << "- " << seq->name << " (" << seq->length() << " bp)\n";
-    }
+    calculate_statistics<Sequence_Fasta>(sequences);
 
     // // Calculate and output statistics for fragment sequences
     // cerr << "\nFragment sequence statistics:\n";
