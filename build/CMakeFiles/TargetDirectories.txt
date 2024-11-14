@@ -1,5 +1,0 @@
-/mnt/c/Viktor/Faks/Projekt R/Projekt/Projekt-R/build/CMakeFiles/pimavilo_mapper.dir
-/mnt/c/Viktor/Faks/Projekt R/Projekt/Projekt-R/build/CMakeFiles/edit_cache.dir
-/mnt/c/Viktor/Faks/Projekt R/Projekt/Projekt-R/build/CMakeFiles/rebuild_cache.dir
-/mnt/c/Viktor/Faks/Projekt R/Projekt/Projekt-R/build/external/bioparser/CMakeFiles/edit_cache.dir
-/mnt/c/Viktor/Faks/Projekt R/Projekt/Projekt-R/build/external/bioparser/CMakeFiles/rebuild_cache.dir
