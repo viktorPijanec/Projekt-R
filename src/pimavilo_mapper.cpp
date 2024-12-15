@@ -9,6 +9,7 @@
 #include "bioparser/fastq_parser.hpp"
 #include <cstddef>
 #include <cstdlib>
+#include "pimavilo/Align.h"
 
 using namespace std;
 
@@ -17,7 +18,11 @@ void print_help()
     cout << "Usage: pimavilo_mapper [options] <reference_file> <fragments_file>\n"
          << "Options:\n"
          << "  -h, --help       Show this help message and exit\n"
-         << "  --version        Show version information\n";
+         << "  --version        Show version information\n"
+         << "  -m, --match      Value for match score (default: 2)\n"
+         << "  -n, --mismatch   Value for mismatch penalty (default: -1)\n"
+         << "  -g, --gap        Value for gap penalty (default: -2)\n"
+         << "  -a, --alignment  Alignment type (can be: global, semiglobal, local; default: local)\n";
 }
 
 void print_version()
@@ -120,13 +125,25 @@ int main(int argc, char *argv[])
     const struct option long_options[] = {
         {"help", no_argument, nullptr, 'h'},
         {"version", no_argument, nullptr, 'v'},
+        {"match", required_argument, nullptr, 'm'},
+        {"mismatch", required_argument, nullptr, 'n'},
+        {"gap", required_argument, nullptr, 'g'},
+        {"alignment_type", required_argument, nullptr, 'a'},
         {nullptr, 0, nullptr, 0}};
 
     int option_index = 0;
     int opt;
 
+    // Default values for alignment scores
+    int match_score = 2;
+    int mismatch_penalty = -1;
+    int gap_penalty = -2;
+
+    // Default alignment type
+    pimavilo::AlignmentType alignment_type = pimavilo::AlignmentType::Local;
+
     // Parse command line arguments
-    while ((opt = getopt_long(argc, argv, "h", long_options, &option_index)) != -1)
+    while ((opt = getopt_long(argc, argv, "hvm:n:g:a:", long_options, &option_index)) != -1)
     {
         // cout << opt << endl;
         switch (opt)
@@ -137,6 +154,29 @@ int main(int argc, char *argv[])
         case 'v':
             print_version();
             return 0;
+        case 'm':
+            match_score = std::atoi(optarg);
+            break;
+        case 'n':
+            mismatch_penalty = std::atoi(optarg);
+            break;
+        case 'g':
+            gap_penalty = std::atoi(optarg);
+            break;
+        case 'a':
+            if (strcmp(optarg, "global") == 0)
+            {
+                alignment_type = pimavilo::AlignmentType::Global;
+            }
+            else if (strcmp(optarg, "local") == 0)
+            {
+                alignment_type = pimavilo::AlignmentType::Local;
+            }
+            else if (strcmp(optarg, "semiglobal") == 0)
+            {
+                alignment_type = pimavilo::AlignmentType::SemiGlobal;
+            }
+            break;
         case '?':
             print_help();
             return 1;
@@ -161,26 +201,17 @@ int main(int argc, char *argv[])
     cerr << "Processing fragments file: " << fragments_file << "\n";
 
     auto parser = bioparser::Parser<Sequence_Fasta>::Create<bioparser::FastaParser>(reference_file);
-    auto reference_sequences = parser->Parse(-1);
+    auto reference_sequences = parser->Parse(-1); // parsing reference sequences
     auto reference_sequence = std::move(reference_sequences[0]);
-    // cout
-    //     << reference_sequence->name << "\n"
-    //     << reference_sequence->data.substr(0, 200) << "\n";                                     // ispisano prvih 200 znakova
-    parser = bioparser::Parser<Sequence_Fasta>::Create<bioparser::FastaParser>(fragments_file); // procitani fragmenti
-    auto sequences = parser->Parse(-1);
-    // for (const auto &seq : sequences)
-    // {
-    //     cout << seq->name << "\n"
-    //          << seq->data.substr(0, 200) << "\n";
-    // }
-    // auto reference_sequences = <bioparser::FastqParser, Sequence_Fastq>(fragments_file);
+    cerr << "Name  of reference sequence: " << reference_sequence->name << "\n";
+    cerr << "Length of reference sequence: " << reference_sequence->length() << "\n"; // Output of name and length of reference sequence
+    parser = bioparser::Parser<Sequence_Fasta>::Create<bioparser::FastaParser>(fragments_file);
+    auto sequences = parser->Parse(-1); // parsing fragment sequences
 
-    // Output names and lengths of sequences in the reference file
+    // Calculate and output statistics for fragment sequences
     calculate_statistics<Sequence_Fasta>(sequences);
 
-    // // Calculate and output statistics for fragment sequences
-    // cerr << "\nFragment sequence statistics:\n";
-    // calculate_statistics(fragment_sequences);
-
+    // Perform dummy alignment
+    cerr << "Align " << pimavilo::Align(sequences[0]->data.c_str(), sequences[0]->length(), sequences[2]->data.c_str(), sequences[2]->length(), alignment_type, match_score, mismatch_penalty, gap_penalty) << "\n";
     return 0;
 }
