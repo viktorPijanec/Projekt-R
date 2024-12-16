@@ -67,12 +67,40 @@ namespace pimavilo
             }
 
             int sol = matrix[query_len][target_len].score;
+            int soli = query_len;
+            int solj = target_len;
+            if (cigar != nullptr)
+            {
+                while (soli != 0 && solj != 0)
+                {
+                    if (matrix[soli][solj].direction == Direction::Diagonal)
+                    {
+                        cigar->append("M");
+                        soli--;
+                        solj--;
+                    }
+                    else if (matrix[soli][solj].direction == Direction::Up)
+                    {
+                        cigar->append("D");
+                        soli--;
+                    }
+                    else
+                    {
+                        cigar->append("I");
+                        solj--;
+                    }
+                }
+            }
             // Free the allocated memory
             for (int i = 0; i <= query_len; ++i)
             {
                 delete[] matrix[i];
             }
             delete[] matrix;
+            if (target_begin != nullptr)
+            {
+                *target_begin = 0;
+            }
             return sol;
         }
         else if (type == AlignmentType::SemiGlobal)
@@ -131,11 +159,14 @@ namespace pimavilo
 
             // Computing the solution
             int sol = matrix[query_len][target_len].score;
+            int soli = 0, solj = 0;
             for (int i = 0; i <= target_len; ++i)
             {
                 if (matrix[query_len][i].score >= sol)
                 {
                     sol = matrix[query_len][i].score;
+                    soli = query_len;
+                    solj = i;
                 }
             }
             for (int i = 0; i <= query_len; ++i)
@@ -143,6 +174,30 @@ namespace pimavilo
                 if (matrix[i][target_len].score >= sol)
                 {
                     sol = matrix[i][target_len].score;
+                    soli = i;
+                    solj = target_len;
+                }
+            }
+            if (cigar != nullptr)
+            {
+                while (matrix[soli][solj].direction != Direction::Start)
+                {
+                    if (matrix[soli][solj].direction == Direction::Diagonal)
+                    {
+                        cigar->append("M");
+                        soli--;
+                        solj--;
+                    }
+                    else if (matrix[soli][solj].direction == Direction::Up)
+                    {
+                        cigar->append("D");
+                        soli--;
+                    }
+                    else
+                    {
+                        cigar->append("I");
+                        solj--;
+                    }
                 }
             }
             // Free the allocated memory
@@ -151,6 +206,10 @@ namespace pimavilo
                 delete[] matrix[i];
             }
             delete[] matrix;
+            if (target_begin != nullptr)
+            {
+                *target_begin = 0;
+            }
             return sol;
         }
         else if (type == AlignmentType::Local)
@@ -216,13 +275,53 @@ namespace pimavilo
 
             // Computing the solution
             int sol = matrix[query_len][target_len].score;
-            for (int i = 0; i <= query_len; ++i)
+            int soli = 0, solj = 0;
+            int poc1 = 0, poc2 = 0, kraj1 = query_len - 1, kraj2 = target_len - 1;
+            for (int i = 1; i <= query_len; ++i)
             {
-                for (int j = 0; j <= target_len; ++j)
+                for (int j = 1; j <= target_len; ++j)
                 {
                     if (matrix[i][j].score >= sol)
                     {
+                        soli = i;
+                        solj = j;
                         sol = matrix[i][j].score;
+                        kraj1 = i - 1;
+                        kraj2 = j - 1;
+                    }
+                }
+            }
+            while (matrix[soli][solj].direction != Direction::Start)
+            {
+                if (target_begin != nullptr)
+                {
+                    *target_begin = solj - 1;
+                }
+                poc1 = soli - 1;
+                poc2 = solj - 1;
+                if (matrix[soli][solj].direction == Direction::Diagonal)
+                {
+                    --soli;
+                    --solj;
+                    if (cigar != nullptr)
+                    {
+                        cigar->insert(0, "M");
+                    }
+                }
+                else if (matrix[soli][solj].direction == Direction::Up)
+                {
+                    --soli;
+                    if (cigar != nullptr)
+                    {
+                        cigar->insert(0, "D");
+                    }
+                }
+                else
+                {
+                    --solj;
+                    if (cigar != nullptr)
+                    {
+                        cigar->insert(0, "I");
                     }
                 }
             }
@@ -232,6 +331,17 @@ namespace pimavilo
                 delete[] matrix[i];
             }
             delete[] matrix;
+            // std::cerr << poc1 << " " << kraj1 << " " << poc2 << " " << kraj2 << std::endl;
+            // for (int i = poc1; i <= kraj1; ++i)
+            // {
+            //     std::cerr << query[i];
+            // }
+            // std::cerr << std::endl;
+            // for (int i = poc2; i <= kraj2; ++i)
+            // {
+            //     std::cerr << target[i];
+            // }
+            // std::cerr << std::endl;
             return sol;
         }
         return 0;

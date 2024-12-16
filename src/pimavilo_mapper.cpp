@@ -211,7 +211,10 @@ int main(int argc, char *argv[])
     // Calculate and output statistics for fragment sequences
     calculate_statistics<Sequence_Fasta>(sequences);
 
+    unsigned int target_begin = 0;
+    string cigar_string = "";
     // Perform dummy alignment
-    cerr << "Align " << pimavilo::Align(sequences[0]->data.c_str(), sequences[0]->length(), sequences[2]->data.c_str(), sequences[2]->length(), alignment_type, match_score, mismatch_penalty, gap_penalty) << "\n";
+    cerr << "Align " << pimavilo::Align(sequences[0]->data.c_str(), sequences[0]->length(), sequences[2]->data.c_str(), sequences[2]->length(), alignment_type, match_score, mismatch_penalty, gap_penalty, &cigar_string, &target_begin) << "\n";
+    cerr << "begin: " << target_begin << " cigar: " << cigar_string << endl;
     return 0;
 }
