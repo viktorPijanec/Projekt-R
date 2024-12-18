@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include "pimavilo/Align.h"
+#include "pimavilo/Minimizers.hpp"
 
 using namespace std;
 

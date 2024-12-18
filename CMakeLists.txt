@@ -31,3 +31,8 @@ target_link_libraries(pimavilo_mapper
 )
 # Add version information
 target_compile_definitions(pimavilo_mapper PRIVATE PROJECT_VERSION="${PROJECT_VERSION}")
+
+add_library(pimavilo_minimizers
+    src/pimavilo/Minimizers.cpp
+    src/pimavilo/Minimizers.hpp
+)
