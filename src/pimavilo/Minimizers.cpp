@@ -49,7 +49,36 @@ namespace pimavilo{
     unsigned int window_len){
       std::vector<std::tuple<unsigned int, unsigned int, bool>> minimizers;
 
-      //dovrsit treba
+      if(sequence_len < kmer_len || window_len < kmer_len){
+         throw std::invalid_argument("Invalid kmer length or window length");
+      }
+
+      std::string seq(sequence, sequence_len);
+      std::string rev_comp = GetReverseComplement(seq);
+
+      auto fown_hashes = HashKmers(seq, kmer_len);
+      auto rev_comp_hashes = HashKmers(rev_comp, kmer_len);
+
+      for(size_t i = 0; i < fown_hashes.size() - window_len; i++){
+         unsigned int min_hash = std::numeric_limits<unsigned int>::max();
+         unsigned int min_index = 0;
+         bool is_minimizer = true;
+
+         for(size_t j = i; j < i +window_len; j++){
+            if(fown_hashes[j].first < min_hash){
+               min_hash = fown_hashes[j].first;
+               min_index = fown_hashes[j].second;
+               is_minimizer = true;
+            }
+            if(rev_comp_hashes[j].first < min_hash){
+               min_hash = rev_comp_hashes[j].first;
+               min_index = rev_comp_hashes[j].second;
+               is_minimizer = false;
+            }
+         }
+
+         minimizers.emplace_back(min_hash, min_index, is_minimizer);
+      }
 
       return minimizers;
    }
