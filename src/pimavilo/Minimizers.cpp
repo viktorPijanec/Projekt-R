@@ -1,12 +1,13 @@
 #include "Minimizers.hpp"
 #include <limits>
 #include <algorithm>
+#include <stdexcept>
 
 namespace pimavilo{
 
    std::string GetReverseComplement(const std::string& sequence){
-      std::string complete(sequence.size() - 1);
-      for(size_t i = 0; i < sequence.size() - 1; i++){
+      std::string complement(sequence.size(), 'N');
+      for(size_t i = 0; i < sequence.size(); i++){
          switch(sequence[sequence.size() - 1 - i]){
             case 'A':
                complement[i] = 'T';
@@ -35,7 +36,7 @@ namespace pimavilo{
          return hashes;
       }
 
-      for(size_t i = 0; i < sequence.size() - 1; i++){
+      for(size_t i = 0; i < sequence.size() - kmer_len; i++){
          std::string kmer = sequence.substr(i, kmer_len);
          unsigned int hash = std::hash<std::string>{}(kmer);
          hashes.push_back(hash);
@@ -65,14 +66,14 @@ namespace pimavilo{
          bool is_minimizer = true;
 
          for(size_t j = i; j < i +window_len; j++){
-            if(fown_hashes[j].first < min_hash){
-               min_hash = fown_hashes[j].first;
-               min_index = fown_hashes[j].second;
+            if(fown_hashes[j] < min_hash){
+               min_hash = fown_hashes[j];
+               min_index = fown_hashes[j];
                is_minimizer = true;
             }
-            if(rev_comp_hashes[j].first < min_hash){
-               min_hash = rev_comp_hashes[j].first;
-               min_index = rev_comp_hashes[j].second;
+            if(rev_comp_hashes[j] < min_hash){
+               min_hash = rev_comp_hashes[j];
+               min_index = rev_comp_hashes[j];
                is_minimizer = false;
             }
          }
