@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include "pimavilo/Align.h"
 #include "pimavilo/Minimizers.hpp"
+#include <unordered_map>
 
 using namespace std;
 
@@ -208,6 +209,60 @@ int main(int argc, char *argv[])
     cerr << "Length of reference sequence: " << reference_sequence->length() << "\n"; // Output of name and length of reference sequence
     parser = bioparser::Parser<Sequence_Fasta>::Create<bioparser::FastaParser>(fragments_file);
     auto sequences = parser->Parse(-1); // parsing fragment sequences
+
+    auto frag_parser = bioparser::Parser<Sequence_Fasta>::Create<bioparser::FastaParser>(fragments_file);
+    auto fragments_sequences = frag_parser->Parse(-1);
+
+    // Set k, w and f parameters
+    unsigned int kmer_len = 15;
+    unsigned int window_len = 5;
+    double frequency_threshold = 0.5;
+
+    //process the reference file
+    std::unordered_map<unsigned int, unsigned int> minimizer_counts_ref;
+    for(const auto& ref_seq : reference_sequences){
+        auto minimizers = pimavilo::Minimize(ref_seq->data.c_str(), ref_seq->length(), kmer_len, window_len);
+        for(const auto& [hash, index, strand] : minimizers){
+            minimizer_counts_ref[hash]++;
+        }
+    }
+
+    //process the fragments file
+    std::unordered_map<unsigned int, unsigned int> minimizer_counts_frag;
+    for(const auto& frag_seq : fragments_sequences){
+        auto minimizers = pimavilo::Minimize(frag_seq->data.c_str(), frag_seq->length(), kmer_len, window_len);
+        for(const auto& [hash, index, strand] : minimizers){
+            minimizer_counts_frag[hash]++;
+        }
+    }
+
+    //Anayze Minimizer Statistics
+    auto analyze_minimizers = [](const std::unordered_map<unsigned int, unsigned int>& counts, double f){
+        size_t total_minimizers = counts.size();
+        size_t singletons = std::count_if(counts.begin(), counts.end(), [](const auto& entry){return entry.second == 1;});
+
+        std::vector<unsigned int> frequencies;
+        for(const auto& entry : counts){
+            frequencies.push_back(entry.second);
+        }
+
+        std::sort(frequencies.begin(), frequencies.end(), std::greater<>());
+
+        size_t exclude_count = static_cast<size_t>(f * frequencies.size());
+        size_t max_freq = (frequencies.size() > exclude_count) ? frequencies[exclude_count] : 0;
+
+        //print statistics
+        cerr << "Number of minimizers: " << total_minimizers << "\n";
+        cerr << "Fraction of singletons: " << singletons << "\n";
+        cerr << "Max frequency: " << max_freq << "\n";
+    };
+    
+    //Print statistics for both reference and fragment minimizers
+    std::cout << "Reference Minimizer Statistics:\n";
+    analyze_minimizers(minimizer_counts_ref, frequency_threshold);
+
+    std::cout << "\nFragment Minimizer Statistics:\n";
+    analyze_minimizers(minimizer_counts_frag, frequency_threshold);
 
     // Calculate and output statistics for fragment sequences
     calculate_statistics<Sequence_Fasta>(sequences);
