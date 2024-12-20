@@ -4,6 +4,27 @@
 namespace pimavilo
 {
 
+    void CondenseCigar(std::string *cigar)
+    {
+        std::string new_cigar = "";
+        for (size_t i = 0; i < cigar->size(); ++i)
+        {
+            if (cigar->at(i) == 'M' || cigar->at(i) == 'D' || cigar->at(i) == 'N')
+            {
+                new_cigar += cigar->at(i);
+            }
+            else if (cigar->at(i) == 'I')
+            {
+                new_cigar += 'M';
+            }
+            else if (cigar->at(i) == 'S')
+            {
+                new_cigar += 'N';
+            }
+        }
+        *cigar = new_cigar;
+    }
+
     int Align(
         const char *query, unsigned int query_len,
         const char *target, unsigned int target_len,
@@ -71,24 +92,48 @@ namespace pimavilo
             int solj = target_len;
             if (cigar != nullptr)
             {
+                char last_op = '\0';
+                int count_op = 0;
+
                 while (soli != 0 && solj != 0)
                 {
+                    char op;
                     if (matrix[soli][solj].direction == Direction::Diagonal)
                     {
-                        cigar->append("M");
+                        op = 'M';
                         soli--;
                         solj--;
                     }
                     else if (matrix[soli][solj].direction == Direction::Up)
                     {
-                        cigar->append("D");
+                        op = 'D';
                         soli--;
                     }
                     else
                     {
-                        cigar->append("I");
+                        op = 'I';
                         solj--;
                     }
+
+                    if (op == last_op)
+                    {
+                        count_op++;
+                    }
+                    else
+                    {
+                        if (last_op != '\0')
+                        {
+                            if (cigar != nullptr)
+                                cigar->insert(0, std::to_string(count_op) + last_op);
+                        }
+                        last_op = op;
+                        count_op = 1;
+                    }
+                }
+                if (last_op != '\0')
+                {
+                    if (cigar != nullptr)
+                        cigar->insert(0, std::to_string(count_op) + last_op);
                 }
             }
             // Free the allocated memory
@@ -180,24 +225,46 @@ namespace pimavilo
             }
             if (cigar != nullptr)
             {
-                while (matrix[soli][solj].direction != Direction::Start)
+                char last_op = '\0';
+                int count_op = 0;
+
+                while (soli != 0 && solj != 0)
                 {
+                    char op;
                     if (matrix[soli][solj].direction == Direction::Diagonal)
                     {
-                        cigar->append("M");
+                        op = 'M';
                         soli--;
                         solj--;
                     }
                     else if (matrix[soli][solj].direction == Direction::Up)
                     {
-                        cigar->append("D");
+                        op = 'D';
                         soli--;
                     }
                     else
                     {
-                        cigar->append("I");
+                        op = 'I';
                         solj--;
                     }
+
+                    if (op == last_op)
+                    {
+                        count_op++;
+                    }
+                    else
+                    {
+                        if (last_op != '\0')
+                        {
+                            cigar->insert(0, std::to_string(count_op) + last_op);
+                        }
+                        last_op = op;
+                        count_op = 1;
+                    }
+                }
+                if (last_op != '\0')
+                {
+                    cigar->insert(0, std::to_string(count_op) + last_op);
                 }
             }
             // Free the allocated memory
@@ -299,30 +366,49 @@ namespace pimavilo
                 }
                 poc1 = soli - 1;
                 poc2 = solj - 1;
-                if (matrix[soli][solj].direction == Direction::Diagonal)
+
+                char last_op = '\0';
+                int count_op = 0;
+
+                while (soli != 0 && solj != 0)
                 {
-                    --soli;
-                    --solj;
-                    if (cigar != nullptr)
+                    char op;
+                    if (matrix[soli][solj].direction == Direction::Diagonal)
                     {
-                        cigar->insert(0, "M");
+                        op = 'M';
+                        soli--;
+                        solj--;
+                    }
+                    else if (matrix[soli][solj].direction == Direction::Up)
+                    {
+                        op = 'D';
+                        soli--;
+                    }
+                    else
+                    {
+                        op = 'I';
+                        solj--;
+                    }
+
+                    if (op == last_op)
+                    {
+                        count_op++;
+                    }
+                    else
+                    {
+                        if (last_op != '\0')
+                        {
+                            if (cigar != nullptr)
+                                cigar->insert(0, std::to_string(count_op) + last_op);
+                        }
+                        last_op = op;
+                        count_op = 1;
                     }
                 }
-                else if (matrix[soli][solj].direction == Direction::Up)
+                if (last_op != '\0')
                 {
-                    --soli;
                     if (cigar != nullptr)
-                    {
-                        cigar->insert(0, "D");
-                    }
-                }
-                else
-                {
-                    --solj;
-                    if (cigar != nullptr)
-                    {
-                        cigar->insert(0, "I");
-                    }
+                        cigar->insert(0, std::to_string(count_op) + last_op);
                 }
             }
             // Free the allocated memory
@@ -331,17 +417,6 @@ namespace pimavilo
                 delete[] matrix[i];
             }
             delete[] matrix;
-            // std::cerr << poc1 << " " << kraj1 << " " << poc2 << " " << kraj2 << std::endl;
-            // for (int i = poc1; i <= kraj1; ++i)
-            // {
-            //     std::cerr << query[i];
-            // }
-            // std::cerr << std::endl;
-            // for (int i = poc2; i <= kraj2; ++i)
-            // {
-            //     std::cerr << target[i];
-            // }
-            // std::cerr << std::endl;
             return sol;
         }
         return 0;
