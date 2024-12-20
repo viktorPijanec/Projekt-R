@@ -24,7 +24,10 @@ void print_help()
          << "  -m, --match      Value for match score (default: 2)\n"
          << "  -n, --mismatch   Value for mismatch penalty (default: -1)\n"
          << "  -g, --gap        Value for gap penalty (default: -2)\n"
-         << "  -a, --alignment  Alignment type (can be: global, semiglobal, local; default: local)\n";
+         << "  -a, --alignment  Alignment type (can be: global, semiglobal, local; default: local)\n"
+         << "  -k, --kmer_len   Kmer length (default: 5)\n"
+         << "  -w, --window_len Window length (default: 15)\n"
+         << "  -f, --frequency  Frequency threshold (default: 0.001)\n";
 }
 
 void print_version()
@@ -131,6 +134,9 @@ int main(int argc, char *argv[])
         {"mismatch", required_argument, nullptr, 'n'},
         {"gap", required_argument, nullptr, 'g'},
         {"alignment_type", required_argument, nullptr, 'a'},
+        {"kmer_len", required_argument, nullptr, 'k'},
+        {"window_len", required_argument, nullptr, 'w'},
+        {"frequency", required_argument, nullptr, 'f'},
         {nullptr, 0, nullptr, 0}};
 
     int option_index = 0;
@@ -141,11 +147,16 @@ int main(int argc, char *argv[])
     int mismatch_penalty = -1;
     int gap_penalty = -2;
 
+    // Set k, w and f parameters
+    unsigned int kmer_len = 5;
+    unsigned int window_len = 15;
+    double frequency_threshold = 0.001;
+
     // Default alignment type
     pimavilo::AlignmentType alignment_type = pimavilo::AlignmentType::Local;
 
     // Parse command line arguments
-    while ((opt = getopt_long(argc, argv, "hvm:n:g:a:", long_options, &option_index)) != -1)
+    while ((opt = getopt_long(argc, argv, "hvm:n:g:a:k:w:f:", long_options, &option_index)) != -1)
     {
         // cout << opt << endl;
         switch (opt)
@@ -157,13 +168,13 @@ int main(int argc, char *argv[])
             print_version();
             return 0;
         case 'm':
-            match_score = std::atoi(optarg);
+            match_score = atoi(optarg);
             break;
         case 'n':
-            mismatch_penalty = std::atoi(optarg);
+            mismatch_penalty = atoi(optarg);
             break;
         case 'g':
-            gap_penalty = std::atoi(optarg);
+            gap_penalty = atoi(optarg);
             break;
         case 'a':
             if (strcmp(optarg, "global") == 0)
@@ -178,6 +189,15 @@ int main(int argc, char *argv[])
             {
                 alignment_type = pimavilo::AlignmentType::SemiGlobal;
             }
+            break;
+        case 'k':
+            kmer_len = atoi(optarg);
+            break;
+        case 'w':
+            window_len = atoi(optarg);
+            break;
+        case 'f':
+            frequency_threshold = atof(optarg);
             break;
         case '?':
             print_help();
@@ -204,60 +224,61 @@ int main(int argc, char *argv[])
 
     auto parser = bioparser::Parser<Sequence_Fasta>::Create<bioparser::FastaParser>(reference_file);
     auto reference_sequences = parser->Parse(-1); // parsing reference sequences
-    auto reference_sequence = std::move(reference_sequences[0]);
-    cerr << "Name  of reference sequence: " << reference_sequence->name << "\n";
-    cerr << "Length of reference sequence: " << reference_sequence->length() << "\n"; // Output of name and length of reference sequence
+    cerr << "Name  of reference sequence: " << reference_sequences[0]->name << "\n";
+    cerr << "Length of reference sequence: " << reference_sequences[0]->length() << "\n"; // Output of name and length of reference sequence
     parser = bioparser::Parser<Sequence_Fasta>::Create<bioparser::FastaParser>(fragments_file);
     auto sequences = parser->Parse(-1); // parsing fragment sequences
 
     auto frag_parser = bioparser::Parser<Sequence_Fasta>::Create<bioparser::FastaParser>(fragments_file);
     auto fragments_sequences = frag_parser->Parse(-1);
 
-    // Set k, w and f parameters
-    unsigned int kmer_len = 15;
-    unsigned int window_len = 5;
-    double frequency_threshold = 0.5;
-
-    //process the reference file
+    // process the reference file
     std::unordered_map<unsigned int, unsigned int> minimizer_counts_ref;
-    for(const auto& ref_seq : reference_sequences){
+    for (const auto &ref_seq : reference_sequences)
+    {
         auto minimizers = pimavilo::Minimize(ref_seq->data.c_str(), ref_seq->length(), kmer_len, window_len);
-        for(const auto& [hash, index, strand] : minimizers){
+        for (const auto &[hash, index, strand] : minimizers)
+        {
             minimizer_counts_ref[hash]++;
         }
     }
 
-    //process the fragments file
+    // process the fragments file
     std::unordered_map<unsigned int, unsigned int> minimizer_counts_frag;
-    for(const auto& frag_seq : fragments_sequences){
+    for (const auto &frag_seq : fragments_sequences)
+    {
         auto minimizers = pimavilo::Minimize(frag_seq->data.c_str(), frag_seq->length(), kmer_len, window_len);
-        for(const auto& [hash, index, strand] : minimizers){
+        for (const auto &[hash, index, strand] : minimizers)
+        {
             minimizer_counts_frag[hash]++;
         }
     }
 
-    //Anayze Minimizer Statistics
-    auto analyze_minimizers = [](const std::unordered_map<unsigned int, unsigned int>& counts, double f){
+    // Anayze Minimizer Statistics
+    auto analyze_minimizers = [](const std::unordered_map<unsigned int, unsigned int> &counts, double f)
+    {
         size_t total_minimizers = counts.size();
-        size_t singletons = std::count_if(counts.begin(), counts.end(), [](const auto& entry){return entry.second == 1;});
+        size_t singletons = std::count_if(counts.begin(), counts.end(), [](const std::pair<const unsigned int, unsigned int> &entry)
+                                          { return entry.second == 1; });
 
         std::vector<unsigned int> frequencies;
-        for(const auto& entry : counts){
+        for (const auto &entry : counts)
+        {
             frequencies.push_back(entry.second);
         }
 
-        std::sort(frequencies.begin(), frequencies.end(), std::greater<>());
+        std::sort(frequencies.begin(), frequencies.end(), std::greater<unsigned int>());
 
         size_t exclude_count = static_cast<size_t>(f * frequencies.size());
         size_t max_freq = (frequencies.size() > exclude_count) ? frequencies[exclude_count] : 0;
 
-        //print statistics
+        // print statistics
         cerr << "Number of minimizers: " << total_minimizers << "\n";
         cerr << "Fraction of singletons: " << singletons << "\n";
         cerr << "Max frequency: " << max_freq << "\n";
     };
-    
-    //Print statistics for both reference and fragment minimizers
+
+    // Print statistics for both reference and fragment minimizers
     std::cout << "Reference Minimizer Statistics:\n";
     analyze_minimizers(minimizer_counts_ref, frequency_threshold);
 
