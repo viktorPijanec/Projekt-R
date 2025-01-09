@@ -12,6 +12,7 @@
 #include "pimavilo/Align.h"
 #include "pimavilo/Minimizers.hpp"
 #include <unordered_map>
+#include <omp.h>
 
 using namespace std;
 
@@ -124,6 +125,22 @@ void calculate_statistics(const std::vector<std::unique_ptr<Sequence>> &sequence
     cerr << "N50 length: " << n50 << "\n";
 }
 
+//function to generate PAF output line
+std::string GeneratePAF(const std:string ˛query_name, unsigned int query_len, char strand, const std::string &target_name, unsigned int target_len, unsigned int target_start, unsigned int target_end, unsinged int matching_bases, unsigned int alignment_length, unsinged int mapping_quality, const std::string &cigar = "") {
+    	std::string paf_line = query_name + "\t" + std::to_string(query_len) + "\t" +
+                               std::to_string(query_start) + "\t" + std::to_string(query_end) + "\t" +
+                               strand + "\t" + target_name + "\t" + std::to_string(target_len) + "\t" +
+                               std::to_string(target_start) + "\t" + std::to_string(target_end) + "\t" +
+                               std::to_string(matching_bases) + "\t" + std::to_string(alignment_length) + "\t" +
+                               std::to_string(mapping_quality);
+        
+        (!cigar.empty()){
+            paf_line += "\tcg:Z:" + cigar;
+        }
+        
+        return paf_line;
+}
+
 int main(int argc, char *argv[])
 {
     // Define long options
@@ -232,6 +249,9 @@ int main(int argc, char *argv[])
     auto frag_parser = bioparser::Parser<Sequence_Fasta>::Create<bioparser::FastaParser>(fragments_file);
     auto fragments_sequences = frag_parser->Parse(-1);
 
+    auto reference_minimizers = pimavilo:Minimize(reference_sequence.c_str(), reference_sequence.length(), kmer_len, window_len);
+    auto reference_index = pimavilo::BuildMinimizerIndex(reference_minimizers, frequency_threshold);
+
     // process the reference file
     std::unordered_map<unsigned int, unsigned int> minimizer_counts_ref;
     for (const auto &ref_seq : reference_sequences)
@@ -293,5 +313,10 @@ int main(int argc, char *argv[])
     // Perform dummy alignment
     cerr << "Align " << pimavilo::Align(sequences[0]->data.c_str(), sequences[0]->length(), sequences[2]->data.c_str(), sequences[2]->length(), alignment_type, match_score, mismatch_penalty, gap_penalty, &cigar_string, &target_begin) << "\n";
     cerr << "begin: " << target_begin << " cigar: " << cigar_string << endl;
+
+    //Generate PAF output
+    std::string paf_line = GeneratePAF(sequences[0]->name, sequences[0]->length(), 'F', sequences[2]->name, sequences[2]->length(), target_begin, target_begin + 10, 10, 10, 10, cigar_string);
+    cerr << paf_line << endl;
+    
     return 0;
 }

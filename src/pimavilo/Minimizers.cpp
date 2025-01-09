@@ -98,4 +98,29 @@ namespace pimavilo
 
       return minimizers;
    }
+
+   /*A minimizer index stores positions and origins for each distinct
+    minimizer in the reference genome. Too frequent minimizers are 
+   ignored based on a frequency threshold (f).*/
+   std::unordered_map<unsigned int, std::vector<std::pair<unsigned int, bool>>> BuildMinimizerIndex(
+       const std::vector<std::tuple<unsigned int, unsigned int, bool>>& minimizers,
+       double frequency_treshold){
+         
+      std::unordered_map<unsigned int, std::vector<std::pair<unsigned int, bool>>> minimizer_index;
+
+      for (const auto& &[hash, position, strand] : minimizers){
+         minimizer_index[hash].emplace_back(position, strand);
+      }
+
+      size_t max_frequency = static_cast<size_t>(frequency_treshold * minimizers.size());
+      for(auto it = index.begin(); it != index.end();){
+         if(it->second.size() > max_frequency){
+            it = index.erase(it);
+         } else {
+            ++it;
+         }
+      }
+
+      return minimizer_index;
+   }
 }

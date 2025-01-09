@@ -16,6 +16,11 @@ namespace pimavilo{
     const char* sequence, unsigned int sequence_len,
     unsigned int kmer_len,
     unsigned int window_len);
+
+    std::unordered_map<unsigned int, std::vector<std::pair<unsigned int, bool>>> BuildMinimizerIndex(
+        const std::vector<std::tuple<unsigned int, unsigned int, bool>>& minimizers
+        double frequency_treshold
+    );
 }
 
 #endif
