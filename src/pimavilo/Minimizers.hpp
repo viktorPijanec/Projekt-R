@@ -4,6 +4,7 @@
 #include <vector>
 #include <tuple>
 #include <string>
+#include <unordered_map>
 
 namespace pimavilo{
    //compute reverse complement for DNA/RNA
@@ -18,9 +19,8 @@ namespace pimavilo{
     unsigned int window_len);
 
     std::unordered_map<unsigned int, std::vector<std::pair<unsigned int, bool>>> BuildMinimizerIndex(
-        const std::vector<std::tuple<unsigned int, unsigned int, bool>>& minimizers
-        double frequency_treshold
-    );
+        const std::vector<std::tuple<unsigned int, unsigned int, bool>>& minimizers,
+        double frequency_treshold);
 }
 
 #endif

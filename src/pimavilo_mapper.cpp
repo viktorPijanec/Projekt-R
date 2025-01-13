@@ -126,7 +126,12 @@ void calculate_statistics(const std::vector<std::unique_ptr<Sequence>> &sequence
 }
 
 //function to generate PAF output line
-std::string GeneratePAF(const std:string ˛query_name, unsigned int query_len, char strand, const std::string &target_name, unsigned int target_len, unsigned int target_start, unsigned int target_end, unsinged int matching_bases, unsigned int alignment_length, unsinged int mapping_quality, const std::string &cigar = "") {
+std::string GeneratePAF(const std::string &query_name, unsigned int query_len,
+                        unsigned int query_start, unsigned int query_end, char strand, 
+                        const std::string &target_name, unsigned int target_len, unsigned int target_start, 
+                        unsigned int target_end, unsigned int matching_bases, unsigned int alignment_length, 
+                        unsigned int mapping_quality, const std::string &cigar = "") {
+
     	std::string paf_line = query_name + "\t" + std::to_string(query_len) + "\t" +
                                std::to_string(query_start) + "\t" + std::to_string(query_end) + "\t" +
                                strand + "\t" + target_name + "\t" + std::to_string(target_len) + "\t" +
@@ -134,7 +139,7 @@ std::string GeneratePAF(const std:string ˛query_name, unsigned int query_len, c
                                std::to_string(matching_bases) + "\t" + std::to_string(alignment_length) + "\t" +
                                std::to_string(mapping_quality);
         
-        (!cigar.empty()){
+        if(!cigar.empty()){
             paf_line += "\tcg:Z:" + cigar;
         }
         
@@ -249,7 +254,7 @@ int main(int argc, char *argv[])
     auto frag_parser = bioparser::Parser<Sequence_Fasta>::Create<bioparser::FastaParser>(fragments_file);
     auto fragments_sequences = frag_parser->Parse(-1);
 
-    auto reference_minimizers = pimavilo:Minimize(reference_sequence.c_str(), reference_sequence.length(), kmer_len, window_len);
+    auto reference_minimizers = pimavilo::Minimize(reference_sequences[0]->data.c_str(), reference_sequences[0]->length(), kmer_len, window_len);
     auto reference_index = pimavilo::BuildMinimizerIndex(reference_minimizers, frequency_threshold);
 
     // process the reference file
@@ -315,7 +320,8 @@ int main(int argc, char *argv[])
     cerr << "begin: " << target_begin << " cigar: " << cigar_string << endl;
 
     //Generate PAF output
-    std::string paf_line = GeneratePAF(sequences[0]->name, sequences[0]->length(), 'F', sequences[2]->name, sequences[2]->length(), target_begin, target_begin + 10, 10, 10, 10, cigar_string);
+    cerr << endl;
+    std::string paf_line = GeneratePAF(sequences[0]->name, sequences[0]->length(), 1, sequences[0]->length(), 'F', sequences[2]->name, sequences[2]->length(), 1, sequences[2]->length(), 100, 100, 100, cigar_string);
     cerr << paf_line << endl;
     
     return 0;
