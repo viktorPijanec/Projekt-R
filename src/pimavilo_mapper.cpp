@@ -13,6 +13,7 @@
 #include "pimavilo/Minimizers.hpp"
 #include <unordered_map>
 #include <omp.h>
+#include <cmath>
 
 using namespace std;
 
@@ -277,7 +278,12 @@ int main(int argc, char *argv[])
         {
             minimizer_counts_frag[hash]++;
         }
-
+    }
+    omp_set_num_threads(16);
+    #pragma omp parallel for 
+    for (const auto &frag_seq : fragments_sequences)
+    {
+        auto minimizers = pimavilo::Minimize(frag_seq->data.c_str(), frag_seq->length(), kmer_len, window_len);
         vector<tuple<int, int, int>> matches;
         for (const auto &[hash, index, strand] : minimizers){
             if (reference_index.find(hash)!=reference_index.end()){
@@ -287,25 +293,29 @@ int main(int argc, char *argv[])
             }
         }
         if (matches.empty()) continue;
-
-        vector <int> temp_ref, temp_frag;
-        temp_ref.push_back(get<2>(matches[0]));
-        temp_frag.push_back(get<1>(matches[0]));
-
-        for (int i=1;i<matches.size();++i){
-            if (get<1>(matches[i]) == get<1>(matches[i-1])) continue;
-            if (get<2>(matches[i])>temp_ref.back()){
-                temp_ref.push_back(get<2>(matches[i]));
-                temp_frag.push_back(get<1>(matches[i]));
-            }
-            else{
-                int low = lower_bound(temp_ref.begin(), temp_ref.end(), get<2>(matches[i])) - temp_ref.begin();
-                temp_ref[low] = get<2>(matches[i]);
-                temp_frag[low] = get<1>(matches[i]);
+        vector<int> temp(matches.size(), 1), temp_ind(matches.size(), -1);
+        for (int i=0;i<matches.size();++i){
+            for (int j=i+1;j<matches.size();++j){
+                if (get<1>(matches[i])==get<1>(matches[j])) continue;
+                if (get<2>(matches[i])<get<2>(matches[j])){
+                    temp[j]=temp[i]+1;
+                    temp_ind[j]=i;
+                }
             }
         }
-
-        cout << temp_frag.front() << "  " << temp_frag.back() << "     " << temp_ref.front() << "  " << temp_ref.back() << endl;
+        int maxi=-1;
+        int max_value = 0;
+        for (int i=0;i<temp.size();++i){
+            if (temp[i]>max_value){
+                maxi=i;
+                max_value=temp[i];
+            }
+        }
+        int mini=maxi;
+        while(mini!=-1){
+            if (temp_ind[mini]==-1) break;
+            mini=temp_ind[mini];
+        }
     }
 
     // Anayze Minimizer Statistics
