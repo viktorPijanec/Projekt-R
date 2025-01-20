@@ -286,20 +286,26 @@ int main(int argc, char *argv[])
                 }
             }
         }
+        if (matches.empty()) continue;
 
-        vector <int> temp;
-        temp.push_back(get<2>(matches[0]));
+        vector <int> temp_ref, temp_frag;
+        temp_ref.push_back(get<2>(matches[0]));
+        temp_frag.push_back(get<1>(matches[0]));
 
         for (int i=1;i<matches.size();++i){
             if (get<1>(matches[i]) == get<1>(matches[i-1])) continue;
-            if (get<2>(matches[i])>temp.back()){
-                temp.push_back(get<2>(matches[i]));
+            if (get<2>(matches[i])>temp_ref.back()){
+                temp_ref.push_back(get<2>(matches[i]));
+                temp_frag.push_back(get<1>(matches[i]));
             }
             else{
-                int low = lower_bound(temp.begin(), temp.end(), get<2>(matches[i])) - temp.begin();
-                temp[low] = get<2>(matches[i]);
+                int low = lower_bound(temp_ref.begin(), temp_ref.end(), get<2>(matches[i])) - temp_ref.begin();
+                temp_ref[low] = get<2>(matches[i]);
+                temp_frag[low] = get<1>(matches[i]);
             }
         }
+
+        cout << temp_frag.front() << "  " << temp_frag.back() << "     " << temp_ref.front() << "  " << temp_ref.back() << endl;
     }
 
     // Anayze Minimizer Statistics
