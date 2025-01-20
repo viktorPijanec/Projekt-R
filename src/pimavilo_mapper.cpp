@@ -277,6 +277,29 @@ int main(int argc, char *argv[])
         {
             minimizer_counts_frag[hash]++;
         }
+
+        vector<tuple<int, int, int>> matches;
+        for (const auto &[hash, index, strand] : minimizers){
+            if (reference_index.find(hash)!=reference_index.end()){
+                for (int i=0;i<reference_index[hash].size();++i){
+                    matches.push_back(make_tuple(hash, index, reference_index[hash][i].first));
+                }
+            }
+        }
+
+        vector <int> temp;
+        temp.push_back(get<2>(matches[0]));
+
+        for (int i=1;i<matches.size();++i){
+            if (get<1>(matches[i]) == get<1>(matches[i-1])) continue;
+            if (get<2>(matches[i])>temp.back()){
+                temp.push_back(get<2>(matches[i]));
+            }
+            else{
+                int low = lower_bound(temp.begin(), temp.end(), get<2>(matches[i])) - temp.begin();
+                temp[low] = get<2>(matches[i]);
+            }
+        }
     }
 
     // Anayze Minimizer Statistics
@@ -310,17 +333,19 @@ int main(int argc, char *argv[])
     std::cout << "\nFragment Minimizer Statistics:\n";
     analyze_minimizers(minimizer_counts_frag, frequency_threshold);
 
+    std::cout << "\n";
     // Calculate and output statistics for fragment sequences
     calculate_statistics<Sequence_Fasta>(sequences);
+
+    
 
     unsigned int target_begin = 0;
     string cigar_string = "";
     // Perform dummy alignment
-    cerr << "Align " << pimavilo::Align(sequences[0]->data.c_str(), sequences[0]->length(), sequences[2]->data.c_str(), sequences[2]->length(), alignment_type, match_score, mismatch_penalty, gap_penalty, &cigar_string, &target_begin) << "\n";
+    cerr << "\nAlign " << pimavilo::Align(sequences[0]->data.c_str(), sequences[0]->length(), sequences[2]->data.c_str(), sequences[2]->length(), alignment_type, match_score, mismatch_penalty, gap_penalty, &cigar_string, &target_begin) << "\n";
     cerr << "begin: " << target_begin << " cigar: " << cigar_string << endl;
 
     //Generate PAF output
-    cerr << endl;
     std::string paf_line = GeneratePAF(sequences[0]->name, sequences[0]->length(), 1, sequences[0]->length(), 'F', sequences[2]->name, sequences[2]->length(), 1, sequences[2]->length(), 100, 100, 100, cigar_string);
     cerr << paf_line << endl;
     
