@@ -280,41 +280,63 @@ int main(int argc, char *argv[])
         }
     }
     omp_set_num_threads(16);
-    #pragma omp parallel for 
-    for (const auto &frag_seq : fragments_sequences)
-    {
+    #pragma omp parallel for schedule(dynamic)
+    for (size_t frag_idx = 0; frag_idx < fragments_sequences.size(); ++frag_idx) {
+        const auto &frag_seq = fragments_sequences[frag_idx];
         auto minimizers = pimavilo::Minimize(frag_seq->data.c_str(), frag_seq->length(), kmer_len, window_len);
-        vector<tuple<int, int, int>> matches;
-        for (const auto &[hash, index, strand] : minimizers){
-            if (reference_index.find(hash)!=reference_index.end()){
-                for (int i=0;i<reference_index[hash].size();++i){
-                    matches.push_back(make_tuple(hash, index, reference_index[hash][i].first));
+
+        // Find matches between fragment minimizers and reference index
+        vector<tuple<int, int, int>> matches; // (hash, fragment_index, reference_index)
+        for (const auto &[hash, frag_index, strand] : minimizers) {
+            if (reference_index.find(hash) != reference_index.end()) {
+                for (const auto &[ref_index, ref_strand] : reference_index.at(hash)) {
+                    matches.emplace_back(hash, frag_index, ref_index);
                 }
             }
         }
+
         if (matches.empty()) continue;
-        vector<int> temp(matches.size(), 1), temp_ind(matches.size(), -1);
-        for (int i=0;i<matches.size();++i){
-            for (int j=i+1;j<matches.size();++j){
-                if (get<1>(matches[i])==get<1>(matches[j])) continue;
-                if (get<2>(matches[i])<get<2>(matches[j])){
-                    temp[j]=temp[i]+1;
-                    temp_ind[j]=i;
-                }
+
+        // Find LIS on reference indices while preserving fragment order
+        vector<int> lis; // Stores indices of LIS elements
+        vector<int> prev(matches.size(), -1); // For reconstructing the LIS
+
+        for (size_t i = 0; i < matches.size(); ++i) {
+            int ref_index = get<2>(matches[i]);
+
+            // Find position in LIS using binary search
+            auto pos = lower_bound(lis.begin(), lis.end(), ref_index, [&](int lis_index, int val) {
+                return get<2>(matches[lis_index]) < val;
+            });
+
+            size_t idx = distance(lis.begin(), pos);
+
+            if (pos == lis.end()) {
+                lis.push_back(i); // Extend the LIS
+            } else {
+                lis[idx] = i; // Replace to maintain smallest possible LIS
+            }
+
+            // Update previous element for LIS reconstruction
+            if (idx > 0) {
+                prev[i] = lis[idx - 1];
             }
         }
-        int maxi=-1;
-        int max_value = 0;
-        for (int i=0;i<temp.size();++i){
-            if (temp[i]>max_value){
-                maxi=i;
-                max_value=temp[i];
-            }
+
+        // Reconstruct LIS from the indices
+        vector<int> lis_indices;
+        for (int i = lis.back(); i != -1; i = prev[i]) {
+            lis_indices.push_back(i);
         }
-        int mini=maxi;
-        while(mini!=-1){
-            if (temp_ind[mini]==-1) break;
-            mini=temp_ind[mini];
+        reverse(lis_indices.begin(), lis_indices.end());
+
+        // Output or process the LIS
+        if (!lis_indices.empty()) {
+            const auto &first_match = matches[lis_indices.front()];
+            const auto &last_match = matches[lis_indices.back()];
+            cout << "Fragment " << frag_idx << " LIS: "
+                << "Fragment range [" << get<1>(first_match) << ", " << get<1>(last_match) << "] "
+                << "Reference range [" << get<2>(first_match) << ", " << get<2>(last_match) << "]\n";
         }
     }
 
