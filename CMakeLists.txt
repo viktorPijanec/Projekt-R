@@ -8,6 +8,13 @@ project(pimavilo_mapper VERSION 1.0.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+#Enable OpenMP
+find_package(OpenMP REQUIRED)
+if (OpenMP_CXX_FOUND)
+    message(STATUS "OpenMP found")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif ()
+
 #Add subdirectory bioparser
 add_subdirectory(external/bioparser)
 
@@ -35,6 +42,7 @@ target_link_libraries(pimavilo_mapper
     PRIVATE bioparser
     PRIVATE pimavilo_alignment
     PRIVATE pimavilo_minimizers
+    PRIVATE OpenMP::OpenMP_CXX
 )
 # Add version information
 target_compile_definitions(pimavilo_mapper PRIVATE PROJECT_VERSION="${PROJECT_VERSION}")
