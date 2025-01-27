@@ -7,6 +7,14 @@
 namespace pimavilo
 {
 
+   unsigned int CustomHash(const std::string& kmer) {
+      unsigned int hash = 0;
+      for (char c : kmer) {
+         hash = (hash * 31 + c) % 1000000007;  // Example simple polynomial hash
+      }
+      return hash;
+   }
+
    std::string GetReverseComplement(const std::string &sequence)
    {
       std::string complement(sequence.size(), 'N');
@@ -43,10 +51,10 @@ namespace pimavilo
          return hashes;
       }
 
-      for (size_t i = 0; i < sequence.size() - kmer_len; i++)
+      for (size_t i = 0; i <= sequence.size() - kmer_len; i++)
       {
          std::string kmer = sequence.substr(i, kmer_len);
-         unsigned int hash = std::hash<std::string>{}(kmer);
+         unsigned int hash = CustomHash(kmer);
          hashes.push_back(hash);
       }
 
@@ -71,7 +79,7 @@ namespace pimavilo
       auto fown_hashes = HashKmers(seq, kmer_len);
       auto rev_comp_hashes = HashKmers(rev_comp, kmer_len);
 
-      for (size_t i = 0; i < fown_hashes.size() - window_len; i++)
+      for (size_t i = 0; i <= fown_hashes.size() - window_len; i++)
       {
          unsigned int min_hash = std::numeric_limits<unsigned int>::max();
          unsigned int min_index = 0;
@@ -88,7 +96,7 @@ namespace pimavilo
             if (rev_comp_hashes[j] < min_hash)
             {
                min_hash = rev_comp_hashes[j];
-               min_index = j;
+               min_index = sequence_len - kmer_len - j;
                is_on_forward = false;
             }
          }
