@@ -32,6 +32,7 @@ unsigned int window_len = 15;
 double frequency_threshold = 0.001;
 
 bool cigar = false;
+int num_of_threads = 1;
 
 // Default alignment type
 pimavilo::AlignmentType alignment_type = pimavilo::AlignmentType::Local;
@@ -49,7 +50,8 @@ void print_help()
          << "  -k, --kmer_len   Kmer length (default: 5)\n"
          << "  -w, --window_len Window length (default: 15)\n"
          << "  -f, --frequency  Frequency threshold (default: 0.001)\n"
-         << "  -c, --cigar      Use cigar string\n";
+         << "  -c, --cigar      Use cigar string\n"
+         << "  -t, --threads    Number of threads to use (default: 1)\n" << "\n";
 }
 
 void print_version()
@@ -176,7 +178,7 @@ std::string GeneratePAF(const std::string &query_name, unsigned int query_len, s
                         unsigned int query_start, unsigned int query_end, char strand, 
                         const std::string &target_name, unsigned int target_len, string target,
                         unsigned int target_start, unsigned int target_end,
-                        unsigned int alignment_length, unsigned int mapping_quality, const bool &cigar) {
+                        unsigned int alignment_length, const bool &cigar) {
         
     string cigar_string = "";
     unsigned int target_begin = 0;
@@ -188,6 +190,8 @@ std::string GeneratePAF(const std::string &query_name, unsigned int query_len, s
     int align = pimavilo::Align(str1.c_str(), str1.size(), 
                  str2.c_str(), str2.size(), alignment_type,
                  match_score, mismatch_penalty, gap_penalty, &cigar_string, &target_begin);
+
+    int mapping_quality = round((double)align/min(query_len, target_len)*match_score*100);
 
     int matching_bases = CountMsInCigar(cigar_string);
 
@@ -282,13 +286,14 @@ int main(int argc, char *argv[]){
         {"window_len", required_argument, nullptr, 'w'},
         {"frequency", required_argument, nullptr, 'f'},
         {"cigar", no_argument, nullptr, 'c'},
+        {"threads", required_argument, nullptr, 't'},
         {nullptr, 0, nullptr, 0}};
 
     int option_index = 0;
     int opt;
 
     // Parse command line arguments
-    while ((opt = getopt_long(argc, argv, "hvm:n:g:a:k:w:f:c", long_options, &option_index)) != -1)
+    while ((opt = getopt_long(argc, argv, "hvm:n:g:a:k:w:f:ct:", long_options, &option_index)) != -1)
     {
         switch (opt)
         {
@@ -332,6 +337,9 @@ int main(int argc, char *argv[]){
             break;
         case 'c':
             cigar = true;
+            break;
+        case 't':
+            num_of_threads = atoi(optarg);
             break;
         case '?':
             print_help();
@@ -387,9 +395,9 @@ int main(int argc, char *argv[]){
 
     // process the fragments file
     std::unordered_map<unsigned int, unsigned int> minimizer_counts_frag;
-    // omp_set_num_threads(16);
-    // #pragma omp parallel for schedule(dynamic)
     cerr << "Mapping...\n";
+    omp_set_num_threads(num_of_threads);
+    #pragma omp parallel for schedule(dynamic)
     for (size_t frag_idx = 0; frag_idx < fragments_sequences.size(); ++frag_idx) {
         // cerr << "frag_idx " << frag_idx << "\n";
         const auto &frag_seq = fragments_sequences[frag_idx];
@@ -427,11 +435,11 @@ int main(int argc, char *argv[]){
                         vector<int> s = LIS(cluster);
                         if (!s.empty()){
                             cerr << GeneratePAF(frag_seq->name, frag_seq->length(), frag_seq->data, 
-                            get<1>(cluster[s.front()]), get<1>(cluster[s.back()]), 'F',
+                            get<1>(cluster[s.front()]), get<1>(cluster[s.back()]), '+',
                             reference_sequences[0]->name, reference_sequences[0]->length(), reference_sequences[0]->data,
                             get<2>(cluster[s.front()]), get<2>(cluster[s.back()]), 
                             max(get<1>(cluster[s.back()]) - get<1>(cluster[s.front()]), get<2>(cluster[s.back()]) - get<2>(cluster[s.front()])),
-                            100, cigar) << "\n";
+                            cigar) << "\n";
                         }
                     }
                     cluster.clear();
@@ -443,11 +451,11 @@ int main(int argc, char *argv[]){
             vector<int> s = LIS(cluster);
             if (!s.empty()){
                 cerr << GeneratePAF(frag_seq->name, frag_seq->length(), frag_seq->data, 
-                get<1>(cluster[s.front()]), get<1>(cluster[s.back()]), 'F',
+                get<1>(cluster[s.front()]), get<1>(cluster[s.back()]), '+',
                 reference_sequences[0]->name, reference_sequences[0]->length(), reference_sequences[0]->data,
                 get<2>(cluster[s.front()]), get<2>(cluster[s.back()]), 
                 max(get<1>(cluster[s.back()]) - get<1>(cluster[s.front()]), get<2>(cluster[s.back()]) - get<2>(cluster[s.front()])),
-                100, cigar) << "\n";
+                cigar) << "\n";
             }
         }
         cluster.clear();
@@ -463,11 +471,11 @@ int main(int argc, char *argv[]){
                     vector<int> s = LIS(cluster);
                     if (!s.empty()){
                         cerr << GeneratePAF(frag_seq->name, frag_seq->length(), frag_seq->data, 
-                        get<1>(cluster[s.front()]), get<1>(cluster[s.back()]), 'F',
+                        get<1>(cluster[s.front()]), get<1>(cluster[s.back()]), '-',
                         reference_sequences[0]->name, reference_sequences[0]->length(), reference_sequences[0]->data,
                         get<2>(cluster[s.front()]), get<2>(cluster[s.back()]), 
                         max(get<1>(cluster[s.back()]) - get<1>(cluster[s.front()]), get<2>(cluster[s.back()]) - get<2>(cluster[s.front()])),
-                        100, cigar) << "\n";
+                        cigar) << "\n";
                     }
                 }
                 cluster.clear();
@@ -478,11 +486,11 @@ int main(int argc, char *argv[]){
             vector<int> s = LIS(cluster);
             if (!s.empty()){
                 cerr << GeneratePAF(frag_seq->name, frag_seq->length(), frag_seq->data, 
-                get<1>(cluster[s.front()]), get<1>(cluster[s.back()]), 'F',
+                get<1>(cluster[s.front()]), get<1>(cluster[s.back()]), '-',
                 reference_sequences[0]->name, reference_sequences[0]->length(), reference_sequences[0]->data,
                 get<2>(cluster[s.front()]), get<2>(cluster[s.back()]), 
                 max(get<1>(cluster[s.back()]) - get<1>(cluster[s.front()]), get<2>(cluster[s.back()]) - get<2>(cluster[s.front()])),
-                100, cigar) << "\n";
+                cigar) << "\n";
             }
         }
     }
@@ -533,8 +541,8 @@ int main(int argc, char *argv[]){
     //Generate PAF output
     cerr << "\nDummy PAF:\n";
     std::string paf_line = GeneratePAF(sequences[0]->name, sequences[0]->length(), sequences[0]->data, 
-            1, sequences[0]->length(), 'F', sequences[2]->name, sequences[2]->length(), 
-            sequences[2]->data, 1, sequences[2]->length(), 100, 100, &cigar_string);
+            1, sequences[0]->length(), '+', sequences[2]->name, sequences[2]->length(), 
+            sequences[2]->data, 1, sequences[2]->length(), 100, &cigar_string);
     cerr << paf_line << endl;
     
     return 0;
